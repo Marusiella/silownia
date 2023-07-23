@@ -1,11 +1,13 @@
 import puppeteer from "puppeteer";
-import fs from "fs";
+import { kv } from "@vercel/kv";
+
 export const getScreenshot = async () => {
   const browser = await puppeteer.launch({ headless: "new" });
   const page = await browser.newPage();
-  const isCacheExists = fs.existsSync("cache.json");
+  const session = await kv.get("cookies");
+
   
-  if (!isCacheExists) {
+  if (!session) {
     await page.goto(
       "https://www.google.com/maps/place/Warsztat+Formy/@50.0374107,20.2170571,17z/data=!3m1!4b1!4m6!3m5!1s0x4716478600b1b6d3:0xf908c031c31a707f!8m2!3d50.0374107!4d20.2192458!16s%2Fg%2F11ck3jrfd3?entry=ttu"
     );
@@ -16,8 +18,7 @@ export const getScreenshot = async () => {
       "#yDmH0d > c-wiz > div > div > div > div.NIoIEf > div.G4njw > div.AIC7ge > div.CxJub > div.VtwTSb > form:nth-child(1) > div > div > button"
     );
   } else {
-    const cookiesString = fs.readFileSync("cache.json").toString();
-    const cookies = JSON.parse(cookiesString);
+    const cookies = JSON.parse(session as string);
     await page.setCookie(...cookies);
     await page.goto(
       "https://www.google.com/maps/place/Warsztat+Formy/@50.0374107,20.2170571,17z/data=!3m1!4b1!4m6!3m5!1s0x4716478600b1b6d3:0xf908c031c31a707f!8m2!3d50.0374107!4d20.2192458!16s%2Fg%2F11ck3jrfd3?entry=ttu"
@@ -41,7 +42,7 @@ export const getScreenshot = async () => {
   // console.log(txt)
 
   // save cache
-  fs.writeFileSync("cache.json", JSON.stringify(await page.cookies()));
+  await kv.set("cookies", JSON.stringify(await page.cookies()));
   await browser.close();
 
   // const x = [
