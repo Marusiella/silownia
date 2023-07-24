@@ -1,5 +1,6 @@
+import { unlinkSync } from 'fs';
 import { getScreenshot } from "$lib";
-import type { PageServerLoad } from "./$types";
+import type { Actions, PageServerLoad } from "./$types";
 
 export const load = (async () => {
     
@@ -9,3 +10,25 @@ export const load = (async () => {
         }
     };
 }) satisfies PageServerLoad;
+
+export const actions = {
+    clearcache: async (x) => {
+        // delete cache.js file
+        try {
+            unlinkSync("cache.json");
+            return {
+                props: {
+                    x: "cache cleared"
+                }
+            }
+            
+        }catch(e) {
+            return {
+                props: {
+                    error: e
+                }
+            }
+        }
+
+    }
+}satisfies Actions;
